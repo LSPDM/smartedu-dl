@@ -289,30 +289,49 @@ async function go(){
       }
     }
 
-    // 2. 下载课件图片
+    // 2. 下载课件图片（8个并发）
     const cw = downloads.find(d=>d.isCW);
     if(cw && cw.ts){
       setProg(70, '下载课件图片...');
       const pubCDN = ['r1-ndr.ykt.cbern.com.cn','r2-ndr.ykt.cbern.com.cn','r3-ndr.ykt.cbern.com.cn'];
-      let miss = 0;
-      for(let p=1; p<=60; p++){
-        if(miss >= 3 && p > 5) break;
-        let ok = false;
+      const BATCH = 8;
+
+      async function tryPage(p){
         for(const h of pubCDN){
-          if(ok) break;
           try{
-            const imgUrl = `https://${h}/edu_product/esp/${cw.folder}/${cw.id}.t/zh-CN/${cw.ts}/transcode/image/${p}.jpg`;
-            const r = await callApi({action:'downloadImage', url:imgUrl});
+            const r = await callApi({action:'downloadImage', url:`https://${h}/edu_product/esp/${cw.folder}/${cw.id}.t/zh-CN/${cw.ts}/transcode/image/${p}.jpg`});
             const blob = await r.blob();
-            if(blob.size > 500){
-              await save(`${S(title)}/课件_页面图片/page_${String(p).padStart(3,'0')}.jpg`, blob);
-              imgOk++; ok = true; miss = 0;
-            }
+            if(blob.size > 500) return blob;
           }catch(e){}
         }
-        if(!ok) miss++;
+        return null;
       }
-      setProg(85, `课件图片: ${imgOk} 张`);
+
+      let p = 1, miss = 0;
+      while(p <= 60){
+        // 每批并发8页
+        const batch = [];
+        for(let i=0; i<BATCH && p+i<=60; i++) batch.push(p+i);
+
+        const results = await Promise.all(batch.map(pn => tryPage(pn).then(b => ({pn, b}))));
+
+        let batchOk = 0;
+        for(const {pn, b} of results){
+          if(b){
+            await save(`${S(title)}/课件_页面图片/page_${String(pn).padStart(3,'0')}.jpg`, b);
+            imgOk++; batchOk++; miss = 0;
+          } else {
+            miss++;
+          }
+        }
+
+        p += BATCH;
+        if(batchOk === 0){ if(miss >= 3 && p > 5 + BATCH) break; }
+        else p = Math.max(p, ...results.filter(r=>r.b).map(r=>r.pn)) + 1;
+
+        if(imgOk % 10 === 0 || imgOk === batchOk) setProg(75 + Math.min(imgOk/60, 1)*15, `课件图片: ${imgOk} 张...`);
+      }
+      setProg(92, `课件图片: ${imgOk} 张`);
     }
 
     setProg(100, `✅ 完成! PDF:${pdfOk} 图片:${imgOk}`);
