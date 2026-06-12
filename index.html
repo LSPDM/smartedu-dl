@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>智慧中小学课件下载</title>
 <style>
-:root{--bg:#f5f6fa;--card:#fff;--t:#2d3436;--sub:#636e72;--ac:#6c5ce7;--ach:#5a4bd1;--bd:#dfe6e9}
+:root{--bg:#f5f6fa;--card:#fff;--t:#2d3436;--sub:#636e72;--ac:#6c5ce7;--ach:#5a4bd1;--bd:#dfe6e9;--gn:#00b894}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t);min-height:100vh;display:flex;justify-content:center;padding:24px 14px 80px}
 .app{width:100%;max-width:780px}
@@ -18,31 +18,48 @@ h1+p{text-align:center;color:var(--sub);font-size:13px;margin:6px 0 20px}
 .fld input{width:100%;padding:10px 14px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;outline:none;font-family:inherit}
 .fld input:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(108,92,231,.1)}
 .hint{font-size:11px;color:#999;margin-top:4px;line-height:1.6}
-.btn{padding:10px 26px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn{padding:10px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
 .btn-p{background:var(--ac);color:#fff}
 .btn-p:hover{background:var(--ach)}
 .btn-p:disabled{background:#b2bec3;cursor:not-allowed}
+.btn-dl{background:var(--gn);color:#fff;padding:6px 14px;font-size:12px;border-radius:6px;text-decoration:none}
+.btn-dl:hover{background:#00a381}
+.btn-out{background:#fff;color:var(--ac);border:1.5px solid var(--ac);padding:6px 14px;font-size:12px;border-radius:6px}
+.btn-out:hover{background:#f5f3ff}
+
 .prog{display:none;margin-top:14px}
 .prog.show{display:block}
 .bar-bg{background:#eee;border-radius:6px;height:8px}
 .bar{background:var(--ac);height:100%;width:0%;border-radius:6px;transition:width .5s}
 .prog p{font-size:12px;color:var(--sub);margin-top:6px}
-.res-item{padding:10px;border:1px solid var(--bd);border-radius:8px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-.res-item .l{font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px}
-.res-item .r{font-size:12px;color:var(--sub)}
-.res-item a{color:var(--ac);text-decoration:none;font-weight:600}
-.res-item a:hover{text-decoration:underline}
+
+.res-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--bd);border-radius:8px;margin-bottom:5px;gap:10px;flex-wrap:wrap}
+.res-item:hover{background:#fafbfc}
+.res-item .l{font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px;min-width:0;flex:1}
+.res-item .l .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res-item .r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
 .cg{margin-bottom:14px}
-.cg .gn{font-size:15px;font-weight:700;margin-bottom:6px}
+.cg .gn{font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .empty{text-align:center;color:#999;padding:30px}
-.ft{text-align:center;margin-top:20px;font-size:11px;color:#bbb}
-.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:4px}.tag.pdf{background:#fde8e8;color:#c0392b}.tag.img{background:#e8f4fd;color:#2980b9}.tag.vid{background:#fef3c7;color:#b45309}
+.ft{text-align:center;margin-top:20px;font-size:11px;color:#bbb;line-height:1.8}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;flex-shrink:0}
+.tag.pdf{background:#fde8e8;color:#c0392b}
+.tag.img{background:#e8f4fd;color:#2980b9}
+
+.badge{background:#f0fdf4;color:#166534;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:999;animation:fadeInUp .3s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+@media(max-width:500px){.app{padding:16px 8px}.res-item .r{width:100%}}
 </style>
 </head>
 <body>
 <div class="app">
 <h1>📚 智慧中小学课件下载</h1>
-<p>粘贴链接 + Token → 自动下载 PDF 和课件图片</p>
+<p>粘贴链接 + Token → 自动弹出下载 · 文件也保存在浏览器里可随时取</p>
 
 <div class="card">
   <div class="fld">
@@ -53,7 +70,7 @@ h1+p{text-align:center;color:var(--sub);font-size:13px;margin:6px 0 20px}
     <label>🔑 Access Token</label>
     <input id="token" placeholder="粘贴从浏览器 LocalStorage 获取的 Token">
     <div class="hint">
-      打开 basic.smartedu.cn 登录 → F12 → Application → Local Storage → 找 ND_UC_AUTH → 复制 value
+      打开 basic.smartedu.cn 登录 → F12 → Application → Local Storage → 找 <code>ND_UC_AUTH-...&token</code> → 双击 value 全选复制 → 粘贴到这里
     </div>
   </div>
   <button class="btn btn-p" id="btn" onclick="go()">🚀 开始下载</button>
@@ -64,8 +81,10 @@ h1+p{text-align:center;color:var(--sub);font-size:13px;margin:6px 0 20px}
 </div>
 
 <div class="card">
-  <div class="ct">📁 已下载 <button class="btn" style="float:right;font-size:12px;padding:3px 10px;background:#eeeef4;color:var(--ac)" onclick="ld()">刷新</button></div>
-  <div id="list"><div class="empty">加载中...</div></div>
+  <div class="ct">📁 已下载
+    <button class="btn-out" onclick="clearAll()" style="margin-left:auto;font-size:11px;padding:4px 10px">清空</button>
+  </div>
+  <div id="list"><div class="empty">暂无下载记录</div></div>
 </div>
 <div class="ft">课件来源: 国家中小学智慧教育平台 · 仅供个人学习</div>
 </div>
@@ -73,157 +92,245 @@ h1+p{text-align:center;color:var(--sub);font-size:13px;margin:6px 0 20px}
 <script>
 const $=id=>document.getElementById(id);
 let busy=false;
-const DB='smartedu_v3';
+const DB='smartedu_v4';
 
-// ====== IndexedDB ======
+// ── IndexedDB ──
 function openDB(){return new Promise((r,x)=>{const q=indexedDB.open(DB,1);q.onupgradeneeded=()=>q.result.createObjectStore('f',{keyPath:'name'});q.onsuccess=()=>r(q.result);q.onerror=x})}
 async function save(name,blob){const d=await openDB();const t=d.transaction('f','readwrite');t.objectStore('f').put({name,blob,time:Date.now()});return new Promise(r=>{t.oncomplete=r})}
 async function listAll(){const d=await openDB();const t=d.transaction('f','readonly');const q=t.objectStore('f').getAll();return new Promise(r=>{q.onsuccess=()=>r(q.result)})}
 async function getOne(name){const d=await openDB();const t=d.transaction('f','readonly');const q=t.objectStore('f').get(name);return new Promise(r=>{q.onsuccess=()=>r(q.result)})}
+async function delOne(name){const d=await openDB();const t=d.transaction('f','readwrite');t.objectStore('f').delete(name);return new Promise(r=>{t.oncomplete=r})}
+async function clearDB(){const d=await openDB();const t=d.transaction('f','readwrite');t.objectStore('f').clear();return new Promise(r=>{t.oncomplete=r})}
 
-// ====== View ======
-async function ld(){
-  const files=await listAll();
-  if(!files.length){$('list').innerHTML='<div class="empty">📭 暂无</div>';return}
-  const g={};
-  for(const f of files){const c=f.name.split('/')[0];if(!g[c])g[c]=[];g[c].push(f)}
-  $('list').innerHTML=Object.entries(g).map(([c,fs])=>{
-    const pdfs=fs.filter(x=>x.name.endsWith('.pdf'));
-    const total=fs.reduce((a,x)=>a+x.blob.size,0);
-    const sz=total>1e6?(total/1e6).toFixed(1)+'MB':(total/1024).toFixed(0)+'KB';
-    let h=`<div class="cg"><div class="gn">📚 ${c}<span style="font-size:11px;color:var(--sub);font-weight:400;margin-left:8px">${fs.length}文件 · ${sz}</span></div>`;
-    pdfs.forEach(x=>{
-      const nm=x.name.split('/').pop();
-      const s=x.blob.size>1e6?(x.blob.size/1e6).toFixed(1)+'MB':(x.blob.size/1024).toFixed(0)+'KB';
-      h+=`<div class="res-item"><span class="l">📄 ${nm}<span class="tag pdf">PDF</span></span><span class="r">${s} <a href="#" onclick="dlFile('${encodeURIComponent(x.name)}');return false">⬇ 下载</a></span></div>`;
+// ── 下载到本地 ──
+function saveToDisk(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+// ── 渲染列表 ──
+async function render(){
+  const files = await listAll();
+  if(!files.length){$('list').innerHTML='<div class="empty">📭 暂无下载记录</div>';return}
+
+  // group by course
+  const groups = {};
+  for(const f of files){
+    const parts = f.name.split('/');
+    const course = parts[0];
+    if(!groups[course]) groups[course] = [];
+    groups[course].push(f);
+  }
+
+  $('list').innerHTML = Object.entries(groups).map(([course, fs]) => {
+    const pdfs = fs.filter(x => x.name.endsWith('.pdf'));
+    const imgCount = fs.filter(x => x.name.match(/\.(jpg|png)$/)).length;
+    const total = fs.reduce((a,x) => a + x.blob.size, 0);
+    const sz = total > 1e6 ? (total/1e6).toFixed(1)+' MB' : (total/1024).toFixed(0)+' KB';
+
+    let h = `<div class="cg"><div class="gn">📚 ${course}<span style="font-size:11px;color:var(--sub);font-weight:400">${pdfs.length}PDF · ${imgCount}图片 · ${sz}</span></div>`;
+
+    // PDF rows
+    pdfs.forEach(x => {
+      const nm = x.name.split('/').pop();
+      const s = x.blob.size > 1e6 ? (x.blob.size/1e6).toFixed(1)+' MB' : (x.blob.size/1024).toFixed(0)+' KB';
+      const enc = encodeURIComponent(x.name);
+      h += `<div class="res-item">
+        <span class="l"><span style="font-size:20px">📄</span><span class="nm">${nm}</span><span class="tag pdf">PDF</span></span>
+        <span class="r">
+          <span style="color:#999;font-size:12px">${s}</span>
+          <button class="btn-dl" data-file="${enc}">⬇ 下载到电脑</button>
+        </span>
+      </div>`;
     });
-    h+='</div>';return h;
+
+    // Image summary row
+    if(imgCount > 0){
+      const ips = fs.filter(x => x.name.match(/\.(jpg|png)$/));
+      const totalImg = ips.reduce((a,x) => a + x.blob.size, 0);
+      const isz = totalImg > 1e6 ? (totalImg/1e6).toFixed(1)+' MB' : (totalImg/1024).toFixed(0)+' KB';
+      h += `<div class="res-item">
+        <span class="l"><span style="font-size:20px">🖼️</span><span class="nm">课件页面图片 × ${imgCount}</span><span class="tag img">JPG</span></span>
+        <span class="r">
+          <span style="color:#999;font-size:12px">${isz}</span>
+          <button class="btn-out" data-course="${course}" data-action="zip">📦 打包下载</button>
+        </span>
+      </div>`;
+    }
+
+    h += '</div>';
+    return h;
   }).join('');
-}
-async function dlFile(name){
-  const f=await getOne(decodeURIComponent(name));
-  if(!f)return;
-  const u=URL.createObjectURL(f.blob),a=document.createElement('a');a.href=u;a.download=f.name.split('/').pop();
-  document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),5000);
+
+  // Bind events
+  $('list').querySelectorAll('.btn-dl').forEach(btn => {
+    btn.addEventListener('click', async function(){
+      const name = decodeURIComponent(this.dataset.file);
+      const f = await getOne(name);
+      if(!f) return toast('文件已过期，请重新下载');
+      saveToDisk(f.blob, name.split('/').pop());
+      toast('✅ 已弹出下载！检查浏览器下载列表');
+    });
+  });
+
+  $('list').querySelectorAll('[data-action="zip"]').forEach(btn => {
+    btn.addEventListener('click', async function(){
+      const course = this.dataset.course;
+      const all = await listAll();
+      const imgs = all.filter(x => x.name.startsWith(course+'/') && x.name.match(/\.(jpg|png)$/));
+      if(!imgs.length) return toast('没有图片');
+      toast('📦 打包中，请稍候...');
+
+      // Create zip (simple: just download each image with a numbered filename)
+      for(const img of imgs){
+        const parts = img.name.split('/');
+        saveToDisk(img.blob, parts[parts.length-1]);
+        await new Promise(r => setTimeout(r, 200)); // avoid blocking
+      }
+      toast(`✅ 已弹出 ${imgs.length} 张图片下载`);
+    });
+  });
 }
 
-// ====== Download ======
+// ── Toast ──
+function toast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.remove(); }, 3000);
+}
+
+// ── 清空 ──
+async function clearAll(){
+  if(!confirm('确定清空所有已下载的文件？')) return;
+  await clearDB();
+  render();
+  toast('已清空');
+}
+
+// ── 下载流程 ──
 function setProg(p,t){$('bar').style.width=p+'%';$('progText').textContent=t}
 
-// Call the Vercel API proxy
 const API = '/api/download';
-
 async function callApi(body){
-  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!r.ok)throw new Error(`HTTP ${r.status}`);
+  const r = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
   return r;
 }
 
 async function go(){
-  const url=$('u').value.trim(),token=$('token').value.trim();
-  if(!url)return alert('请粘贴链接');
-  if(busy)return;
-  const m=url.match(/activityId=([a-f0-9-]+)/i);
-  if(!m)return alert('链接格式错误');
-  const activityId=m[1];
+  const url = $('u').value.trim(), token = $('token').value.trim();
+  if(!url) return alert('请粘贴课件链接');
+  if(busy) return;
+  const m = url.match(/activityId=([a-f0-9-]+)/i);
+  if(!m) return alert('链接格式错误');
+  const activityId = m[1];
 
-  busy=true;$('btn').disabled=true;$('btn').textContent='下载中...';
-  $('prog').classList.add('show');setProg(5,'获取课程信息...');
+  busy = true; $('btn').disabled = true; $('btn').textContent = '下载中...';
+  $('prog').classList.add('show'); setProg(5,'获取课程信息...');
 
   try{
-    // Step 1: get resources
-    const {data}=await (await callApi({action:'getResources',activityId})).json();
-    const items=data.relations?.national_course_resource||[];
-    const title=data.global_title?.['zh-CN']||data.title||'未命名';
-    setProg(10,`${title} · ${items.length}个资源`);
+    // 获取资源列表
+    const {data} = await (await callApi({action:'getResources',activityId})).json();
+    const items = data.relations?.national_course_resource || [];
+    const title = data.global_title?.['zh-CN'] || data.title || '未命名';
+    setProg(10, `${title} · ${items.length}个资源`);
 
-    let done=0,total=0;
-    const downloads=[];
+    const downloads = [];
     for(const item of items){
-      const cp=item.custom_properties||{};
-      if(item.resource_type_code==='micro_lesson_video'){downloads.push({skip:true,label:'视频'});continue}
-      total++;
-      const k=Object.keys(cp.preview||{});
-      let folder='',ts='';
+      const cp = item.custom_properties || {};
+      if(item.resource_type_code === 'micro_lesson_video'){ downloads.push({skip:true,label:'视频'}); continue }
+      const k = Object.keys(cp.preview || {});
+      let folder='', ts='';
       if(k.length>0){
-        const mf=cp.preview[k[0]].match(/edu_product\/esp\/([^/]+)\//);if(mf)folder=mf[1];
-        const mt=cp.preview[k[0]].match(/\/(\d{13})\//);if(mt)ts=mt[1];
+        const mf = cp.preview[k[0]].match(/edu_product\/esp\/([^/]+)\//); if(mf) folder=mf[1];
+        const mt = cp.preview[k[0]].match(/\/(\d{13})\//); if(mt) ts=mt[1];
       }
-      const label=({coursewares:'课件',lesson_plandesign:'教学设计',task_list:'学习任务单',class_exercises:'课后练习'})[folder]||folder;
+      const label = ({coursewares:'课件', lesson_plandesign:'教学设计', task_list:'学习任务单', class_exercises:'课后练习'})[folder] || folder;
       downloads.push({folder,ts,id:item.id,label,isCW:folder==='coursewares'});
     }
 
-    // Step 2: process each resource
-    for(const dl of downloads){
-      if(dl.skip)continue;
-      done++;
+    const total = downloads.filter(d=>!d.skip&&!d.isCW).length + 1; // +1 for images
+    let done = 0, pdfOk = 0, imgOk = 0;
 
-      if(dl.isCW){
-        // Download images via proxy
-        setProg(15+Math.round((done/total)*80),`下载课件图片...`);
-        let imgs=0,miss=0;
-        const pubCDN=['r1-ndr.ykt.cbern.com.cn','r2-ndr.ykt.cbern.com.cn','r3-ndr.ykt.cbern.com.cn'];
-        for(let p=1;p<=60;p++){
-          if(miss>=3&&p>5)break;
-          let ok=false;
-          for(const h of pubCDN){
-            if(ok)break;
-            try{
-              const imgUrl=`https://${h}/edu_product/esp/${dl.folder}/${dl.id}.t/zh-CN/${dl.ts}/transcode/image/${p}.jpg`;
-              const r=await callApi({action:'downloadImage',url:imgUrl});
-              const blob=await r.blob();
-              if(blob.size>500){
-                await save(`${s(title)}/课件_页面图片/page_${String(p).padStart(3,'0')}.jpg`,blob);
-                imgs++;ok=true;miss=0;
-              }
-            }catch(e){}
+    // 1. 下载 PDF
+    const priCDN = ['r1-ndr-private.ykt.cbern.com.cn','r2-ndr-private.ykt.cbern.com.cn','r3-ndr-private.ykt.cbern.com.cn'];
+    for(const dl of downloads){
+      if(dl.skip || dl.isCW) continue;
+      done++;
+      setProg(15+Math.round((done/total)*75), `下载 ${dl.label}...`);
+
+      if(!token){ done--; continue }
+
+      let ok = false;
+      for(const h of priCDN){
+        if(ok) break;
+        try{
+          const pdfUrl = `https://${h}/edu_product/esp/${dl.folder}/${dl.id}.t/zh-CN/${dl.ts}/transcode/pdf.pdf`;
+          const r = await callApi({action:'downloadPdf', url:pdfUrl, token});
+          const blob = await r.blob();
+          if(blob.size > 500){
+            const fp = `${S(title)}/${S(dl.label)}_${S(title)}.pdf`;
+            await save(fp, blob);
+            // 直接弹出下载！
+            saveToDisk(blob, `${S(dl.label)}_${S(title)}.pdf`);
+            ok = true; pdfOk++;
           }
-          if(!ok)miss++;
-        }
-        setProg(15+Math.round((done/total)*80),`课件图片: ${imgs} 张`);
-      }else if(token){
-        // Download PDF via proxy
-        setProg(15+Math.round((done/total)*80),`下载 ${dl.label} PDF...`);
-        let ok=false;
-        const priCDN=['r1-ndr-private.ykt.cbern.com.cn','r2-ndr-private.ykt.cbern.com.cn','r3-ndr-private.ykt.cbern.com.cn'];
-        for(const h of priCDN){
-          if(ok)break;
-          try{
-            const pdfUrl=`https://${h}/edu_product/esp/${dl.folder}/${dl.id}.t/zh-CN/${dl.ts}/transcode/pdf.pdf`;
-            const r=await callApi({action:'downloadPdf',url:pdfUrl,token});
-            const blob=await r.blob();
-            if(blob.size>500){
-              const fp=`${s(title)}/${s(dl.label)}_${s(title)}.pdf`;
-              await save(fp,blob);
-              // Trigger browser download
-              const u2=URL.createObjectURL(blob),a=document.createElement('a');
-              a.href=u2;a.download=`${s(dl.label)}_${s(title)}.pdf`;
-              document.body.appendChild(a);a.click();document.body.removeChild(a);
-              setTimeout(()=>URL.revokeObjectURL(u2),5000);
-              ok=true;
-            }
-          }catch(e){}
-        }
-      }else{
-        done--;
+        }catch(e){}
       }
     }
 
-    setProg(100,'✅ 完成!');
-    $('progText').textContent='✅ 完成!';
+    // 2. 下载课件图片
+    const cw = downloads.find(d=>d.isCW);
+    if(cw && cw.ts){
+      setProg(70, '下载课件图片...');
+      const pubCDN = ['r1-ndr.ykt.cbern.com.cn','r2-ndr.ykt.cbern.com.cn','r3-ndr.ykt.cbern.com.cn'];
+      let miss = 0;
+      for(let p=1; p<=60; p++){
+        if(miss >= 3 && p > 5) break;
+        let ok = false;
+        for(const h of pubCDN){
+          if(ok) break;
+          try{
+            const imgUrl = `https://${h}/edu_product/esp/${cw.folder}/${cw.id}.t/zh-CN/${cw.ts}/transcode/image/${p}.jpg`;
+            const r = await callApi({action:'downloadImage', url:imgUrl});
+            const blob = await r.blob();
+            if(blob.size > 500){
+              await save(`${S(title)}/课件_页面图片/page_${String(p).padStart(3,'0')}.jpg`, blob);
+              imgOk++; ok = true; miss = 0;
+            }
+          }catch(e){}
+        }
+        if(!ok) miss++;
+      }
+      setProg(85, `课件图片: ${imgOk} 张`);
+    }
+
+    setProg(100, `✅ 完成! PDF:${pdfOk} 图片:${imgOk}`);
+    $('progText').textContent = `✅ PDF ${pdfOk}个已弹出下载 · 图片 ${imgOk}张已保存(点打包下载)`;
+    if(!token) $('progText').textContent += ' ⚠️ 未填Token，PDF未下载';
+
   }catch(e){
-    $('progText').textContent='❌ '+e.message;
-    alert('下载出错: '+e.message+'\n\n可能原因:\n1. Token 过期了\n2. 网络问题\n3. 链接无效');
+    $('progText').textContent = '❌ ' + e.message;
+    toast('下载出错: ' + e.message + '\n可能Token过期或网络问题');
   }
 
-  busy=false;$('btn').disabled=false;$('btn').textContent='🚀 开始下载';ld();
+  busy = false; $('btn').disabled = false; $('btn').textContent = '🚀 开始下载';
+  render();
 }
 
-function s(t){return(t||'untitled').replace(/[<>:"/\\|?*]/g,'_').replace(/\s+/g,'_').substring(0,60)}
+function S(t){return (t||'untitled').replace(/[<>:"/\\|?*]/g,'_').replace(/\s+/g,'_').substring(0,60);}
 
-$('u').addEventListener('keydown',e=>{if(e.key==='Enter')$('token').focus()});
-$('token').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
-ld();
+$('u').addEventListener('keydown',e=>{if(e.key==='Enter') $('token').focus()});
+$('token').addEventListener('keydown',e=>{if(e.key==='Enter') go()});
+render();
 </script>
 </body>
 </html>
