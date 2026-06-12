@@ -1,13 +1,11 @@
 /**
- * Vercel Serverless 函数 - 课件下载代理
- * 解决 CDN 的 CORS 问题：服务端请求不受 CORS 限制
+ * 课件下载代理 - Netlify Serverless Function
  */
 const https = require('https');
 
-// 下载单个 URL
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { timeout: 10000 }, (res) => {
+    https.get(url, { timeout: 12000 }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         return fetchUrl(res.headers.location).then(resolve).catch(reject);
       }
@@ -22,65 +20,83 @@ function fetchUrl(url) {
   });
 }
 
-module.exports = async (req, res) => {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+exports.handler = async (event) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
 
-  // 只处理 POST
-  if (req.method !== 'POST') return res.status(200).json({ ok: true });
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
 
-  const { action, url: downloadUrl, activityId, token } = req.body || {};
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 200, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: true }) };
+  }
+
+  let body;
+  try { body = JSON.parse(event.body); } catch (e) {
+    return { statusCode: 400, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'invalid json' }) };
+  }
+
+  const { action, url: downloadUrl, activityId, token } = body;
 
   if (action === 'getResources') {
-    // 获取资源列表
     const apiUrl = `https://s-file-2.ykt.cbern.com.cn/zxx/ndrv2/national_lesson/resources/details/${activityId}.json`;
     try {
       const result = await fetchUrl(apiUrl);
       const data = JSON.parse(result.body.toString());
-      res.json({ ok: true, data });
+      return { statusCode: 200, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: true, data }) };
     } catch (e) {
-      res.status(500).json({ error: e.message });
+      return { statusCode: 502, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: e.message }) };
     }
-    return;
   }
 
   if (action === 'downloadPdf') {
-    // 下载 PDF
-    if (!token) return res.status(400).json({ error: 'token required' });
+    if (!token) return { statusCode: 400, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'token required' }) };
     try {
       const result = await fetchUrl(downloadUrl + '?accessToken=' + encodeURIComponent(token));
       if (result.status === 200 && result.body.length > 500) {
-        res.setHeader('Content-Type', result.contentType);
-        res.setHeader('Content-Length', result.body.length);
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        res.send(result.body);
-      } else {
-        res.status(502).json({ error: 'CDN returned ' + result.status });
+        return {
+          statusCode: 200,
+          headers: {
+            ...headers,
+            'Content-Type': result.contentType,
+            'Content-Length': result.body.length,
+            'Cache-Control': 'public, max-age=3600',
+          },
+          body: result.body.toString('base64'),
+          isBase64Encoded: true,
+        };
       }
+      return { statusCode: 502, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'CDN ' + result.status, size: result.body.length }) };
     } catch (e) {
-      res.status(500).json({ error: e.message });
+      return { statusCode: 502, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: e.message }) };
     }
-    return;
   }
 
   if (action === 'downloadImage') {
-    // 下载图片
     try {
       const result = await fetchUrl(downloadUrl);
       if (result.status === 200 && result.body.length > 500) {
-        res.setHeader('Content-Type', result.contentType);
-        res.setHeader('Content-Length', result.body.length);
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-        res.send(result.body);
-      } else {
-        res.status(502).json({ error: 'CDN ' + result.status });
+        return {
+          statusCode: 200,
+          headers: {
+            ...headers,
+            'Content-Type': result.contentType,
+            'Content-Length': result.body.length,
+            'Cache-Control': 'public, max-age=86400',
+          },
+          body: result.body.toString('base64'),
+          isBase64Encoded: true,
+        };
       }
+      return { statusCode: 502, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'CDN ' + result.status }) };
     } catch (e) {
-      res.status(500).json({ error: e.message });
+      return { statusCode: 502, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: e.message }) };
     }
-    return;
   }
 
-  res.status(400).json({ error: 'invalid action' });
+  return { statusCode: 400, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'invalid action' }) };
 };
