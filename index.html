@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>智慧中小学课件下载</title>
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--t:#2d3436;--sub:#636e72;--ac:#6c5ce7;--ach:#5a4bd1;--bd:#dfe6e9;--tg:#eeeef4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t);min-height:100vh;display:flex;justify-content:center;padding:32px 14px 80px}
+.app{width:100%;max-width:780px}
+h1{text-align:center;font-size:24px;margin-bottom:6px}
+h1+p{text-align:center;color:var(--sub);font-size:13px;margin-bottom:24px}
+
+.card{background:var(--card);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:20px 22px;margin-bottom:12px}
+.ct{font-size:15px;font-weight:600;margin-bottom:10px}
+
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:13px;font-weight:600;color:var(--sub);margin-bottom:4px}
+.fld input,.fld textarea{width:100%;padding:10px 14px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;outline:none;font-family:inherit;transition:border .2s}
+.fld input:focus,.fld textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(108,92,231,.1)}
+.fld textarea{resize:vertical;min-height:60px}
+
+.hint{font-size:11px;color:#999;margin-top:4px;line-height:1.6}
+
+.btn{padding:10px 26px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-p{background:var(--ac);color:#fff}
+.btn-p:hover{background:var(--ach)}
+.btn-p:disabled{background:#b2bec3;cursor:not-allowed}
+
+/* progress */
+.prog{display:none;margin-top:14px}
+.prog.show{display:block}
+.prog .bar-bg{background:#eee;border-radius:6px;height:8px;overflow:hidden;margin-bottom:6px}
+.prog .bar{background:var(--ac);height:100%;width:0%;border-radius:6px;transition:width .5s}
+.prog p{font-size:12px;color:var(--sub)}
+
+/* file list */
+.frow{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;gap:8px;flex-wrap:wrap}
+.frow:hover{background:#fafbfc}
+.frow .l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500}
+.frow .r{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.frow .r a{color:var(--ac);text-decoration:none;font-weight:500;padding:4px 10px;background:var(--tg);border-radius:4px}
+.frow .r a:hover{background:#dcdde8}
+.cg{margin-bottom:14px}
+.cg .gn{font-size:15px;font-weight:700;margin-bottom:6px}
+.cg .gn .n{font-size:11px;color:var(--sub);font-weight:400;margin-left:4px}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;flex-shrink:0}
+.tag.pdf{background:#fde8e8;color:#c0392b}
+.tag.img{background:#e8f4fd;color:#2980b9}
+
+.empty{text-align:center;color:#999;padding:30px;font-size:14px}
+
+.ft{text-align:center;margin-top:20px;font-size:11px;color:#bbb}
+
+@media(max-width:500px){.app{padding:16px 8px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>📚 智慧中小学课件下载</h1>
+  <p>粘贴课件链接 + Token → 自动下载 PDF 和课件图片</p>
+
+  <div class="card">
+    <div class="fld">
+      <label>📎 课件链接</label>
+      <input id="u" type="text" placeholder="https://basic.smartedu.cn/syncClassroom/classActivity?activityId=...">
+    </div>
+    <div class="fld">
+      <label>🔑 Access Token</label>
+      <input id="token" type="text" placeholder="粘贴你的 Token...">
+      <div class="hint">
+        获取方式：浏览器打开 basic.smartedu.cn 登录 → F12 → Application → Local Storage → 找到 ND_UC_AUTH 的 value → 全选复制
+      </div>
+    </div>
+    <button class="btn btn-p" id="btn" onclick="go()">🚀 开始下载</button>
+    <div class="prog" id="prog">
+      <div class="bar-bg"><div class="bar" id="bar"></div></div>
+      <p id="progText">准备中...</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">📁 已下载 <button class="btn" style="float:right;font-size:12px;padding:4px 12px;background:var(--tg)" onclick="ld()">刷新</button></div>
+    <div id="list"><div class="empty">加载中...</div></div>
+  </div>
+
+  <div class="ft">课件来源: 国家中小学智慧教育平台 · 仅供个人学习使用</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let es=null, busy=false;
+
+function go(){
+  const url=$('u').value.trim(), token=$('token').value.trim();
+  if(!url||!token)return alert('请填写链接和Token');
+  if(busy)return;
+
+  busy=true;$('btn').disabled=true;$('btn').textContent='下载中...';
+  $('prog').classList.add('show');$('bar').style.width='0%';$('progText').textContent='开始...';
+
+  if(es){es.close();es=null}
+  es=new EventSource('/api/progress');
+  es.addEventListener('status',e=>{
+    const d=JSON.parse(e.data);
+    $('progText').textContent=d.msg;
+  });
+  es.addEventListener('done',e=>{
+    const d=JSON.parse(e.data);
+    if(d.error){$('progText').textContent='❌ '+d.error}
+    else{$('progText').textContent='✅ 完成! PDF:'+d.pdfCount+' 图片:'+d.imgCount+'张';$('bar').style.width='100%'}
+    es.close();busy=false;$('btn').disabled=false;$('btn').textContent='🚀 开始下载';
+    ld();
+  });
+
+  fetch('/api/download',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({url,token})
+  }).then(r=>r.json()).then(d=>{
+    if(d.error){$('progText').textContent='❌ '+d.error;es.close();busy=false;$('btn').disabled=false;$('btn').textContent='🚀 开始下载'}
+  });
+}
+
+async function ld(){
+  try{
+    const r=await fetch('/api/list'),d=await r.json();
+    if(!d.length){$('list').innerHTML='<div class="empty">📭 暂无</div>';return}
+    $('list').innerHTML=d.map(g=>{
+      const pdfs=g.files.filter(f=>f.name.endsWith('.pdf'));
+      const imgs=g.files.filter(f=>f.name.endsWith('.jpg'));
+      const total=g.files.reduce((a,f)=>a+f.size,0);
+      const ts=total>1e6?(total/1e6).toFixed(1)+'MB':(total/1024).toFixed(0)+'KB';
+
+      let h=`<div class="cg"><div class="gn">📚 ${g.course} <span class="n">· ${g.files.length}文件 · ${ts}</span></div>`;
+      pdfs.forEach(f=>{
+        const nm=f.name.split('/').pop(),sz=f.size>1e6?(f.size/1e6).toFixed(1)+'MB':(f.size/1024).toFixed(0)+'KB';
+        h+=`<div class="frow"><span class="l">📄 ${nm}<span class="tag pdf">PDF</span></span><span class="r">${sz} <a href="/files/${encodeURIComponent(f.name)}" download>⬇</a></span></div>`;
+      });
+      imgs.slice(0,5).forEach(f=>{
+        const nm=f.name.split('/').pop();h+=`<span class="tag img" style="margin:2px">🖼️ ${nm}</span>`;
+      });
+      if(imgs.length>5)h+=`<span style="font-size:11px;color:#999">等${imgs.length}张</span>`;
+      h+=`</div>`;
+      return h;
+    }).join('');
+  }catch(e){$('list').innerHTML='<div class="empty">加载失败</div>'}
+}
+
+$('u').addEventListener('keydown',e=>{if(e.key==='Enter')$('token').focus()});
+$('token').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+ld();
+</script>
+</body>
+</html>
