@@ -89,6 +89,7 @@ h1+p{text-align:center;color:var(--sub);font-size:13px;margin:6px 0 20px}
 <div class="ft">课件来源: 国家中小学智慧教育平台 · 仅供个人学习</div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 let busy=false;
@@ -185,15 +186,16 @@ async function render(){
       const all = await listAll();
       const imgs = all.filter(x => x.name.startsWith(course+'/') && x.name.match(/\.(jpg|png)$/));
       if(!imgs.length) return toast('没有图片');
-      toast('📦 打包中，请稍候...');
+      toast('📦 打包中...');
 
-      // Create zip (simple: just download each image with a numbered filename)
+      const zip = new JSZip();
       for(const img of imgs){
-        const parts = img.name.split('/');
-        saveToDisk(img.blob, parts[parts.length-1]);
-        await new Promise(r => setTimeout(r, 200)); // avoid blocking
+        const fname = img.name.split('/').pop();
+        zip.file(fname, img.blob);
       }
-      toast(`✅ 已弹出 ${imgs.length} 张图片下载`);
+      const zipBlob = await zip.generateAsync({type:'blob'});
+      saveToDisk(zipBlob, course.replace(/\//g,'_') + '_课件图片.zip');
+      toast('✅ 已下载 ' + course + '.zip (' + (zipBlob.size/1024/1024).toFixed(1) + ' MB)');
     });
   });
 }
